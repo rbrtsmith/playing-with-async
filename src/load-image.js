@@ -1,21 +1,39 @@
 import 'babelify/polyfill'
 
-function loadImage(url) {
+function loadImagePromise(url) {
   return new Promise((resolve, reject) => {
-    let image = new Image()
+    const image = new Image();
 
     image.onload = function() {
       resolve(image)
-    }
+    };
 
     image.onerror = function() {
-      let message =
+      const message =
         'Could not load image at ' + url
-      reject(new Error(msg))
-    }
+      reject(new Error(message))
+    };
 
-    image.src = url
+    image.src = url;
 
-  })
+  });
 }
-export default loadImage
+
+function loadImageCallback(url, cb, delay) {
+  const image = new Image();
+
+  image.onload = function() {
+    setTimeout(() => {
+      cb(null, image);
+    }, delay);
+  };
+
+  image.onerror = function() {
+    const message =
+        'Could not load image at ' + url
+      cb(new Error(message))
+  };
+    image.src = url;
+}
+
+export { loadImagePromise, loadImageCallback };
