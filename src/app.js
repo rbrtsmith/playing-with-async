@@ -1,7 +1,8 @@
 import { loadImagePromise, loadImageCallback } from './load-image'
 
+const runPromises = true;
 
-const addImg = (img, id) => document.getElementById(id).appendChild(img);
+const renderImg = (img, id) => document.getElementById(id).appendChild(img);
 
 const coeficcient = 1;
 
@@ -29,30 +30,6 @@ const images = () => ([
     node: null,
     rendered: false,
     delay: 1000 * coeficcient
-  },
-  {
-    url: 'images/cat1.jpg',
-    node: null,
-    rendered: false,
-    delay: 600 * coeficcient
-  },
-  {
-    url: 'images/cat2.jpg',
-    node: null,
-    rendered: false,
-    delay: 500 * coeficcient
-  },
-  {
-    url: 'images/cat3.jpg',
-    node: null,
-    rendered: false,
-    delay: 1200 * coeficcient
-  },
-  {
-    url: 'images/cat4.jpg',
-    node: null,
-    rendered: false,
-    delay: 2000 * coeficcient
   }
 ]);
 
@@ -62,7 +39,7 @@ const efficientCallbacks = function(imgs) {
   function renderInOrder() {
     imgs.forEach(function(image, index) {
       if(image.node && (renderIndex === index && !image.rendered)) {
-        addImg(image.node, 'one');
+        renderImg(image.node, 'one');
         image.rendered = true;
         renderIndex +=1;
       }
@@ -76,7 +53,9 @@ const efficientCallbacks = function(imgs) {
     }, img.delay);
   });  
 };
-efficientCallbacks(images());
+if (!runPromises) {
+  efficientCallbacks(images());  
+}
 
 
 
@@ -89,7 +68,7 @@ const inefficientCallbacks = function(imgs) {
     imgs[index].node = img;
     if (haveAllLoaded()) {
      imgs.forEach(img => {
-        addImg(img.node, 'two');
+        renderImg(img.node, 'two');
       });
     }
   }
@@ -100,11 +79,13 @@ const inefficientCallbacks = function(imgs) {
     }, img.delay);
   });
 };
-inefficientCallbacks(images());
+if (!runPromises) {
+  inefficientCallbacks(images());  
+}
 
 
 const reallyInefficientCallbacks = function(imgs) {
-  const add = res => addImg(res, 'three');
+  const add = res => renderImg(res, 'three');
   loadImageCallback(imgs[0].url, function(err, res) {
     add(res);
     loadImageCallback(imgs[1].url, function(err, res) {
@@ -113,32 +94,45 @@ const reallyInefficientCallbacks = function(imgs) {
         add(res);
         loadImageCallback(imgs[3].url, function(err, res) {
           add(res);
-          loadImageCallback(imgs[4].url, function(err, res) {
-            add(res);
-            loadImageCallback(imgs[5].url, function(err, res) {
-              add(res);
-              loadImageCallback(imgs[6].url, function(err, res) {
-                add(res);
-                loadImageCallback(imgs[7].url, function(err, res) {
-                  add(res);
-                }, imgs[7].delay);
-              }, imgs[6].delay);
-            }, imgs[5].delay);
-          }, imgs[4].delay);
         }, imgs[3].delay);
       }, imgs[2].delay);
     }, imgs[1].delay);
   }, imgs[0].delay);
 }
-reallyInefficientCallbacks(images());
-
+if (!runPromises) {
+  reallyInefficientCallbacks(images());
+}
 
 const random = function(imgs) {
   imgs.forEach(img => {
     loadImageCallback(img.url, function(err, res) {
-      addImg(res, 'four');
+      renderImg(res, 'four');
     }, img.delay);  
   });
 }
-random(images());
+if (!runPromises) {
+  random(images());
+}
+
+const randomPromises = function(imgs) {
+  function loadImg (img) {
+  loadImagePromise(img.url, img.delay)
+    .then(res => renderImg(res, 'four'))
+    .catch(err => { console.error(err)});    
+  }
+  imgs.forEach(loadImg);  
+};
+if(runPromises) {
+  randomPromises(images());
+}
+
+const inefficientPromises = function(imgs) {
+  const imgPromises = imgs.map(img => loadImagePromise(img.url, img.delay));
+  const renderAllImgs = imgs => imgs.forEach(img => renderImg(img, 'three'));
+  Promise.all(imgPromises)
+  .then(renderAllImgs).catch(err => { console.error(err)});
+};
+if(runPromises) {
+  inefficientPromises(images());
+}
 

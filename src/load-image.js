@@ -1,11 +1,13 @@
 import 'babelify/polyfill'
 
-function loadImagePromise(url) {
-  return new Promise((resolve, reject) => {
+function loadImagePromise(url, delay) {
+  return new Promise(function(resolve, reject) {
     const image = new Image();
 
     image.onload = function() {
-      resolve(image)
+      setTimeout(() => {
+        resolve(image)
+      }, delay);
     };
 
     image.onerror = function() {
